@@ -1,0 +1,46 @@
+#!/usr/bin/expect
+
+set timeout 5
+spawn telnet localhost 1025
+
+expect "220"
+send "EHLO localhost\n"
+
+expect "250 SIZE"
+send "MAIL FROM:<root@nsa.gov>\n"
+
+expect "250"
+send "RCPT TO:<root@gchq.gov.uk>\n"
+
+expect "250"
+send "RCPT TO:<root@example.ru>\n"
+
+expect "250"
+send "DATA\n"
+
+expect "354"
+interact
+
+#send "Content-Type: multipart/alternative;
+# boundary=40973a02a14cf07e348ec0b472f09c51a2df5a6d7831ab6ba5e42420fd06
+#To: <test@example.com>
+#Subject: Awesome Subject
+#Message-Id: <1684701907469408000.29392.6505681033595877034@CorwiNs-MacBook-Pro.local>
+#From: "Jordan Wright" <test@gmail.com>
+#Date: Sun, 21 May 2023 23:45:07 +0300
+#Mime-Version: 1.0
+#
+#--40973a02a14cf07e348ec0b472f09c51a2df5a6d7831ab6ba5e42420fd06
+#Content-Transfer-Encoding: quoted-printable
+#Content-Type: text/plain; charset=UTF-8
+#
+#Text Body is, of course, supported!
+#--40973a02a14cf07e348ec0b472f09c51a2df5a6d7831ab6ba5e42420fd06
+#Content-Transfer-Encoding: quoted-printable
+#Content-Type: text/html; charset=UTF-8
+#
+#<h1>Fancy HTML is supported, too!</h1>
+#--40973a02a14cf07e348ec0b472f09c51a2df5a6d7831ab6ba5e42420fd06--
+#"
+
+expect 250
