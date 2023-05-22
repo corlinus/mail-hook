@@ -3,14 +3,17 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"net/mail"
+	"strings"
 
 	"github.com/emersion/go-smtp"
 	"github.com/jordan-wright/email"
 	"github.com/sirupsen/logrus"
 )
 
-var Err = errors.New("internal server error")
+var ErrInternal = errors.New("internal server error")
 
 type Session struct {
 	Config  *Config
@@ -33,7 +36,28 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 }
 
 func (s *Session) Rcpt(to string) error {
-	// TODO: blacklist
+	var allow bool
+	a, err := mail.ParseAddress(to)
+	if err != nil {
+		return err
+	}
+
+	addr := a.Address
+	at := strings.LastIndex(addr, "@")
+	if at == -1 {
+		return errors.New("invalid email address")
+	}
+	rcptDomain := addr[at+1:]
+	for _, domain := range s.Config.AllowDomains {
+		if rcptDomain == domain {
+			allow = true
+			break
+		}
+	}
+	if !allow {
+		return fmt.Errorf("not allowed %s", to)
+	}
+
 	s.To = append(s.To, to)
 	logrus.Infof("mail %s -> %s", s.From, to)
 	return nil
@@ -58,7 +82,6 @@ func (s *Session) Data(r io.Reader) error {
 }
 
 func (s *Session) Reset() {
-	// logrus.Debugf("session reset")
 	s.From = ""
 	s.To = nil
 	s.Options = smtp.MailOptions{}

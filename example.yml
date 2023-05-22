@@ -1,0 +1,11 @@
+---
+log_level: debug
+addr: ":1025"
+domain: localhost
+read_timeout: 30
+write_timeout: 30
+max_message_bytes: 10485760
+max_recipients: 2
+hook_uri: http://localhost:8080/hook
+allow_domains:
+  - example.com
