@@ -6,7 +6,7 @@ copy exmaple.yml to tmp/config.yml then run
 
     make run
 
-## Build binary with docker builder
+## Build binary
 
     make build
 
