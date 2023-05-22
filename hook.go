@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
+	"net/textproto"
 
 	"github.com/jordan-wright/email"
 	"github.com/sirupsen/logrus"
@@ -37,9 +38,11 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
 
-	w.WriteField("from", h.From)
-	w.WriteField("to", fmt.Sprintf("%v", h.To))
-	w.WriteField("options", h.Options)
+	w.WriteField("smtp_from", h.From)
+	w.WriteField("smtp_to", fmt.Sprintf("%v", h.To))
+	w.WriteField("smpt_options", h.Options)
+	w.WriteField("from", h.Email.From)
+	w.WriteField("to", fmt.Sprintf("%v", h.Email.To))
 	w.WriteField("subject", h.Email.Subject)
 	w.WriteField("text", string(h.Email.Text))
 	w.WriteField("html", string(h.Email.HTML))
