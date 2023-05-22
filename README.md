@@ -13,3 +13,7 @@ copy exmaple.yml to tmp/config.yml then run
 ## Build linux binary with docker builder
 
     make dockerbuild
+
+## Run
+
+    smtp-hook -c config.yml

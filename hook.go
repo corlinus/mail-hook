@@ -7,7 +7,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
-	"net/textproto"
 
 	"github.com/jordan-wright/email"
 	"github.com/sirupsen/logrus"
