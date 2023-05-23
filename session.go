@@ -68,6 +68,12 @@ func (s *Session) Data(r io.Reader) error {
 	if err != nil {
 		return err
 	}
+
+	if logrus.GetLevel() >= logrus.TraceLevel {
+		bytes, _ := e.Bytes()
+		fmt.Printf("EMAIL:\n%s", string(bytes))
+	}
+
 	opts, _ := json.Marshal(s.Options)
 	hook := &Hook{
 		Config:  s.Config,

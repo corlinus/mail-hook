@@ -46,8 +46,12 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 	w.WriteField("text", string(h.Email.Text))
 	w.WriteField("html", string(h.Email.HTML))
 
-	for _, at := range h.Email.Attachments {
-		aw, err := w.CreateFormFile("attachment[]", at.Filename)
+	for i, at := range h.Email.Attachments {
+		fname := at.Filename
+		if len(fname) == 0 {
+			fname = fmt.Sprintf("filename%2d", i+1)
+		}
+		aw, err := w.CreateFormFile("attachment[]", fname)
 		if err != nil {
 			logrus.Errorf("error attach file from message: %s", err)
 		}
@@ -64,10 +68,12 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 }
 
 func (h *Hook) send(contentType string, body io.Reader) error {
+	logrus.Debugf("sending hook for %s -> %v", h.From, h.To)
+
 	r, _ := http.NewRequest("POST", h.Config.URI, body)
 	r.Header.Add("Content-Type", contentType)
 
-	if logrus.GetLevel() >= logrus.DebugLevel {
+	if logrus.GetLevel() >= logrus.TraceLevel {
 		reqDump, err := httputil.DumpRequestOut(r, true)
 		if err != nil {
 			logrus.Errorf("err : %s", err)
@@ -85,5 +91,6 @@ func (h *Hook) send(contentType string, body io.Reader) error {
 		return fmt.Errorf("http status code :%d", resp.StatusCode)
 	}
 
+	logrus.Debugf("hook %s -> %v sent. http code %d", h.From, h.To, resp.StatusCode)
 	return nil
 }
