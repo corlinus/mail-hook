@@ -1,6 +1,7 @@
 #!/usr/bin/expect
 
 set file [lindex $argv 0]
+set body [exec cat $file]
 
 set timeout 5
 spawn telnet localhost 1025
@@ -25,8 +26,6 @@ send "DATA\n"
 
 expect "354"
 #interact
-
-set body [exec cat tmp/test.eml]
 send $body
 send "\n.\n"
 

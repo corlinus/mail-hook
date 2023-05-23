@@ -2,34 +2,66 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/jordan-wright/email"
 	"github.com/sirupsen/logrus"
 )
 
 type Hook struct {
-	Config  *Config
+	Config  *Config `json:"-"`
+	Fname   string  `json:"-"`
 	From    string
 	To      []string
 	Options string
 	Email   *email.Email
 }
 
-func (h *Hook) Do() {
-	logrus.Debugf("hooking %s -> %s", h.From, h.To)
+func (h *Hook) String() string {
+	return fmt.Sprintf("%s -> %s", h.From, h.To)
+}
+
+func (h *Hook) Do(ctx context.Context, dump bool) {
+	logrus.Debugf("hooking %s", h)
 	h.Config.wg.Add(1)
 	defer h.Config.wg.Done()
 
-	c, b := h.body()
-	err := h.send(c, b)
-	if err != nil {
-		// TODO: retry on error
-		logrus.Errorf("error on sending hook: %s", err)
+	if dump {
+		h.dump()
+	}
+
+	for i := 0; i < h.Config.SendReties; i++ {
+		if i > 0 {
+			logrus.Infof("retry hook: %s", h)
+		}
+		err := h.send()
+		if err != nil {
+			logrus.Errorf("error on sending hook: %s", err)
+
+			sleep := time.Duration((i*i*i*i)+10) * time.Second
+			t := time.NewTimer(sleep)
+
+			select {
+			case <-t.C:
+				t.Stop()
+				continue
+			case <-ctx.Done():
+				return
+			}
+		}
+
+		h.removeFile()
+		break
 	}
 }
 
@@ -55,21 +87,19 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 		if err != nil {
 			logrus.Errorf("error attach file from message: %s", err)
 		}
-		i, err := io.Copy(aw, bytes.NewReader(at.Content))
+		_, err := io.Copy(aw, bytes.NewReader(at.Content))
 		if err != nil {
 			logrus.Errorf("can not copy email attachment to http request: ", err)
 		}
-
-		logrus.Debugf("bytes copied %d", i)
 	}
 
 	w.Close()
 	return w.FormDataContentType(), body
 }
 
-func (h *Hook) send(contentType string, body io.Reader) error {
-	logrus.Debugf("sending hook for %s -> %v", h.From, h.To)
-
+func (h *Hook) send() error {
+	logrus.Debugf("sending hook %s", h)
+	contentType, body := h.body()
 	r, _ := http.NewRequest("POST", h.Config.URI, body)
 	r.Header.Add("Content-Type", contentType)
 
@@ -84,13 +114,57 @@ func (h *Hook) send(contentType string, body io.Reader) error {
 	client := &http.Client{}
 	resp, err := client.Do(r)
 	if err != nil {
-		return err
+		return fmt.Errorf("send error: %s", err)
 	}
 
 	if resp.StatusCode > 299 {
-		return fmt.Errorf("http status code :%d", resp.StatusCode)
+		return fmt.Errorf("send error: http status code :%d", resp.StatusCode)
 	}
 
-	logrus.Debugf("hook %s -> %v sent. http code %d", h.From, h.To, resp.StatusCode)
+	logrus.Debugf("hook %s sent. http code %d", h, resp.StatusCode)
 	return nil
+}
+
+func (h *Hook) dump() {
+	h.createFname()
+	f, err := os.Create(h.Fname)
+	if err != nil {
+		logrus.Errorf("can not create file %s: %s", h.Fname, err)
+	}
+
+	defer f.Close()
+	err = json.NewEncoder(f).Encode(h)
+	if err != nil {
+		logrus.Errorf("can not dump file %s: %s", h.Fname, err)
+	}
+}
+
+func (h *Hook) createFname() {
+	hash := md5.New()
+	io.WriteString(hash, h.From)
+	io.WriteString(hash, fmt.Sprintf("%v", h.To))
+	io.WriteString(hash, fmt.Sprintf("%d", time.Now().Unix()))
+	h.Fname = filepath.Join(h.Config.SpoolDir, fmt.Sprintf("%x.json", hash.Sum(nil)))
+}
+
+func (h *Hook) removeFile() {
+	err := os.Remove(h.Fname)
+	if err != nil {
+		logrus.Errorf("error delete file: %s", err)
+	}
+}
+
+func restore(fname string, cfg *Config) (*Hook, error) {
+	h := &Hook{Fname: fname, Config: cfg}
+	f, err := os.Open(fname)
+	if err != nil {
+		return nil, err
+	}
+
+	defer f.Close()
+	err = json.NewDecoder(f).Decode(h)
+	if err != nil {
+		logrus.Errorf("can not restore file %s: %s", fname, err)
+	}
+	return h, nil
 }

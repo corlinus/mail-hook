@@ -82,7 +82,7 @@ func (s *Session) Data(r io.Reader) error {
 		To:      s.To,
 		Options: string(opts),
 	}
-	go hook.Do()
+	go hook.Do(s.Config.ctx, true)
 
 	return nil
 }

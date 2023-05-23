@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"reflect"
@@ -20,7 +21,13 @@ type Config struct {
 	MaxRecipients   int          `yaml:"max_recipients" default:"50"`
 	URI             string       `yaml:"hook_uri" default:"http://localhost:8080/hook"`
 	AllowDomains    []string     `yaml:"allow_domains"`
-	wg              *sync.WaitGroup
+	SpoolDir        string       `yaml:"spool_dir" default:"spool"`
+	SendReties      int          `yaml:"send_retries" default:"5"`
+	SpoolThreads    int          `yaml:"spool_threads" default:"5"`
+
+	wg     *sync.WaitGroup    `yaml:"-"`
+	ctx    context.Context    `yaml:"-"`
+	cancel context.CancelFunc `yaml:"-"`
 }
 
 func LoadCfg(fname string) (*Config, error) {
