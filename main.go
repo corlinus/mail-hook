@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -52,6 +54,7 @@ func main() {
 
 	s := newServer(cfg)
 	sygnals(s, cfg)
+	health()
 
 	resumeSpooler(cfg)
 
@@ -72,4 +75,12 @@ func prepare(cfg *Config) {
 	if err != nil {
 		logrus.Fatalf("can not create spool dir %s: %s", cfg)
 	}
+}
+
+func health() {
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "OK")
+	})
+	go http.ListenAndServe(":8080", nil)
 }
