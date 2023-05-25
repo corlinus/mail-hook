@@ -87,7 +87,7 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 		if err != nil {
 			logrus.Errorf("error attach file from message: %s", err)
 		}
-		_, err := io.Copy(aw, bytes.NewReader(at.Content))
+		_, err = io.Copy(aw, bytes.NewReader(at.Content))
 		if err != nil {
 			logrus.Errorf("can not copy email attachment to http request: ", err)
 		}
