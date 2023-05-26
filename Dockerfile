@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY go.mod go.sum .
 RUN go mod download
 COPY . .
-RUN go build .
+RUN go build -ldflags "-s -w" .
 
 FROM alpine:3.18
 WORKDIR /app
