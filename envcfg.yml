@@ -1,0 +1,13 @@
+---
+log_level: ${LOG_LEVEL}
+addr: ':25'
+domain: ${DOMAIN}
+read_timeout: ${READ_TIMEOUT}
+write_timeout: ${WRITE_TIMEOUT}
+max_message_bytes: ${MAX_MESSAGE_SIZE}
+max_recipients: ${MAX_RECIPIENTS}
+hook_uri: ${WEBHOOK_URL}
+send_retries: ${SEND_RETRIES}
+spool_dir: /var/spool/smtp-hook
+spool_threads: 5
+allow_domains: [${DOMAIN}]
