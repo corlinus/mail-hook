@@ -6,7 +6,7 @@ services:
     ports:
       - 1025:1025
     volumes:
-      - .:/app
+      - ./spool:/var/spool/smtp-hook/
     environment:
       - DOMAIN=${DOMAIN}
       - WEBHOOK_URL=${WEBHOOK_URL}
