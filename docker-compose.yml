@@ -4,7 +4,7 @@ services:
     build:
       context: .
     ports:
-      - 1025:1025
+      - 1025:25
     volumes:
       - ./spool:/var/spool/smtp-hook/
     environment:
