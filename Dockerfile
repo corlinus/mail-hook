@@ -1,4 +1,6 @@
 FROM golang:1.20-alpine3.18
+ARG GOOS
+ARG GOARCH
 WORKDIR /usr/src/app
 COPY go.mod go.sum .
 RUN go mod download
