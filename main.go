@@ -73,7 +73,7 @@ func prepare(cfg *Config) {
 
 	err := os.MkdirAll(cfg.SpoolDir, os.ModePerm)
 	if err != nil {
-		logrus.Fatalf("can not create spool dir %s: %s", cfg)
+		logrus.Fatalf("can not create spool dir %s: %s", cfg.SpoolDir, err)
 	}
 }
 

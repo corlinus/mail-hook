@@ -12,18 +12,17 @@ import (
 )
 
 type Config struct {
-	LogLevel        logrus.Level `yaml:"log_level" default:"info"`
-	Addr            string       `yaml:"addr" default:":25"`
-	Domain          string       `yaml:"domain" default:"localhost"`
-	ReadTimeout     int          `yaml:"read_timeout" default:"10"`
-	WriteTimeout    int          `yaml:"write_timeout" default:"10"`
-	MaxMessageBytes int          `yaml:"max_message_bytes" default:"10485760"`
-	MaxRecipients   int          `yaml:"max_recipients" default:"50"`
-	URI             string       `yaml:"hook_uri" default:"http://localhost:8080/hook"`
-	AllowDomains    []string     `yaml:"allow_domains"`
-	SpoolDir        string       `yaml:"spool_dir" default:"spool"`
-	SendReties      int          `yaml:"send_retries" default:"5"`
-	SpoolThreads    int          `yaml:"spool_threads" default:"5"`
+	LogLevel        logrus.Level      `yaml:"log_level" default:"info"`
+	Addr            string            `yaml:"addr" default:":25"`
+	Domain          string            `yaml:"domain" default:"localhost"`
+	ReadTimeout     int               `yaml:"read_timeout" default:"10"`
+	WriteTimeout    int               `yaml:"write_timeout" default:"10"`
+	MaxMessageBytes int               `yaml:"max_message_bytes" default:"10485760"`
+	MaxRecipients   int               `yaml:"max_recipients" default:"50"`
+	AllowDomains    map[string]string `yaml:"allow_domains"`
+	SpoolDir        string            `yaml:"spool_dir" default:"spool"`
+	SendReties      int               `yaml:"send_retries" default:"5"`
+	SpoolThreads    int               `yaml:"spool_threads" default:"5"`
 
 	wg     *sync.WaitGroup    `yaml:"-"`
 	ctx    context.Context    `yaml:"-"`

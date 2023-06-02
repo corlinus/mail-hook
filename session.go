@@ -19,6 +19,7 @@ type Session struct {
 	Config  *Config
 	From    string
 	To      []string
+	HookURI string
 	Options smtp.MailOptions
 }
 
@@ -48,17 +49,13 @@ func (s *Session) Rcpt(to string) error {
 		return errors.New("invalid email address")
 	}
 	rcptDomain := addr[at+1:]
-	for _, domain := range s.Config.AllowDomains {
-		if rcptDomain == domain {
-			allow = true
-			break
-		}
-	}
+	uri, allow := s.Config.AllowDomains[rcptDomain]
 	if !allow {
 		return fmt.Errorf("not allowed %s", to)
 	}
 
 	s.To = append(s.To, to)
+	s.HookURI = uri
 	logrus.Infof("mail %s -> %s", s.From, to)
 	return nil
 }
@@ -80,6 +77,7 @@ func (s *Session) Data(r io.Reader) error {
 		Email:   e,
 		From:    s.From,
 		To:      s.To,
+		HookURI: s.HookURI,
 		Options: string(opts),
 	}
 	go hook.Do(s.Config.ctx, true)

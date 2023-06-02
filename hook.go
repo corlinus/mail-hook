@@ -23,6 +23,7 @@ type Hook struct {
 	Fname   string  `json:"-"`
 	From    string
 	To      []string
+	HookURI string
 	Options string
 	Email   *email.Email
 }
@@ -89,7 +90,7 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 		}
 		_, err = io.Copy(aw, bytes.NewReader(at.Content))
 		if err != nil {
-			logrus.Errorf("can not copy email attachment to http request: ", err)
+			logrus.Errorf("can not copy email attachment to http request: %s", err)
 		}
 	}
 
@@ -100,7 +101,7 @@ func (h *Hook) body() (string, *bytes.Buffer) {
 func (h *Hook) send() error {
 	logrus.Debugf("sending hook %s", h)
 	contentType, body := h.body()
-	r, _ := http.NewRequest("POST", h.Config.URI, body)
+	r, _ := http.NewRequest("POST", h.HookURI, body)
 	r.Header.Add("Content-Type", contentType)
 
 	if logrus.GetLevel() >= logrus.TraceLevel {
