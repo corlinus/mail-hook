@@ -1,14 +1,15 @@
-FROM golang:1.20-alpine3.18
+FROM golang:1.20-alpine3.18 AS builder
 ARG GOOS
 ARG GOARCH
 WORKDIR /usr/src/app
-COPY go.mod go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -ldflags "-s -w" .
+RUN apk add --no-cache file
+RUN GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags "-s -w" -o /smtp-hook
 
 FROM alpine:3.18
 WORKDIR /app
-COPY --from=0 /usr/src/app/smtp-hook .
-COPY --from=0 /usr/src/app/envcfg.yml config.yml
-CMD /app/smtp-hook -c config.yml
+COPY --from=builder /smtp-hook /app
+COPY envcfg.yml /app/config.yml
+ENTRYPOINT [ "/app/smtp-hook", "-c", "config.yml" ]

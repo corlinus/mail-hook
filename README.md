@@ -2,18 +2,16 @@
 
 ## Dev run
 
-copy exmaple.yml to tmp/config.yml then run
+```bash
+cp .env.example .env
+# add variables to env, then
+docker-compose up
+```
 
-    make run
+## Send an email from localhost
 
-## Build binary
+```bash
+swaks --to mail@domain.com --from anymain@gmail.com --server localhost:1025 -header "Subject: Test letter" --body "Sample email body in plaintext"
+```
 
-    make build
-
-## Build linux binary with docker builder
-
-    make dockerbuild
-
-## Run
-
-    smtp-hook -c config.yml
+This will send the letter to localhost with smtp-hook and then to a webhook, that you provided in `.env` file.
