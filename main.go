@@ -49,6 +49,7 @@ func main() {
 		logrus.Fatalf("cfg read error: %s", err)
 	}
 	prepare(cfg)
+	logrus.Debugf("config: %#v", cfg)
 
 	cfg.ctx, cfg.cancel = context.WithCancel(context.Background())
 
