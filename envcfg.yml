@@ -10,4 +10,4 @@ hook_uri: ${WEBHOOK_URL}
 send_retries: ${SEND_RETRIES}
 spool_dir: /var/spool/smtp-hook
 spool_threads: 5
-allow_domains: [${DOMAIN}]
+allow_domains: ${ALLOW_DOMAINS}
